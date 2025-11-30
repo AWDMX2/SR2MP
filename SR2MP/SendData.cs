@@ -1,7 +1,6 @@
-﻿using Il2CppSystem.Collections.Generic;
+﻿using Il2CppMonomiPark.SlimeRancher.Economy;
 using System;
-using System.Diagnostics;
-//using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -20,28 +19,38 @@ namespace SR2MP
             }
         }
 
-        public static void SendMovement(Vector3 pos, float rot)
+        public static void SendMovementWithAnimations(Vector3 pos, float rot, float a1, float a2, float a3, int a4, bool a5, float a6, float a7)
         {
-            using (Packet _packet = new Packet((int)Packets.Movement))
+            using (Packet _packet = new Packet((int)Packets.MovementWithAnimations))
             {
                 _packet.Write(pos);
                 _packet.Write(rot);
+                _packet.Write(a1);
+                _packet.Write(a2);
+                _packet.Write(a3);
+                _packet.Write(a4);
+                _packet.Write(a5);
+                _packet.Write(a6);
+                _packet.Write(a7);
                 Networking.SendUnreliableData(_packet);
             }
         }
 
-        public static void SendAnimations(float f1, float f2, float f3, int i1, bool b1, float f4, float f5)
+        public static void SendRequestSave()
         {
-            using (Packet _packet = new Packet((int)Packets.Animations))
+            using (Packet _packet = new Packet((int)Packets.RequestSave))
             {
-                _packet.Write(f1);
-                _packet.Write(f2);
-                _packet.Write(f3);
-                _packet.Write(i1);
-                _packet.Write(b1);
-                _packet.Write(f4);
-                _packet.Write(f5);
-                Networking.SendUnreliableData(_packet);
+                Networking.SendReliableData(_packet);
+            }
+        }
+
+        public static void SendSave(byte[] save)
+        {
+            using (Packet _packet = new Packet((int)Packets.Save))
+            {
+                _packet.Write(save.Length);
+                _packet.Write(save);
+                Networking.SendReliableData(_packet);
             }
         }
 
@@ -51,33 +60,6 @@ namespace SR2MP
             {
                 _packet.Write(time);
                 Networking.SendUnreliableData(_packet);
-            }
-        }
-
-        public static void SendInGame(bool state)
-        {
-            using (Packet _packet = new Packet((int)Packets.InGame))
-            {
-                _packet.Write(state);
-                Networking.SendReliableData(_packet);
-            }
-        }
-
-        public static void RequestSaveData()
-        {
-            using (Packet _packet = new Packet((int)Packets.SaveDataRequest))
-            {
-                Networking.SendReliableData(_packet);
-            }
-        }
-
-        public static void SendSaveData(byte[] saveData)
-        {
-            using (Packet _packet = new Packet((int)Packets.SaveData))
-            {
-                _packet.Write(saveData.Length);
-                _packet.Write(saveData);
-                Networking.SendReliableData(_packet);
             }
         }
 
@@ -126,7 +108,7 @@ namespace SR2MP
             }
         }
 
-        public static void SendPrices(Dictionary<IdentifiableType, EconomyDirector.CurrValueEntry> prices)
+        public static void SendPrices(Il2CppSystem.Collections.Generic.Dictionary<IdentifiableType, PlortEconomyDirector.CurrValueEntry> prices)
         {
             using (Packet _packet = new Packet((int)Packets.Prices))
             {
@@ -139,9 +121,9 @@ namespace SR2MP
             }
         }
 
-        public static void SendMapOpen(string name)
+        public static void SendOpenMap(string name)
         {
-            using (Packet _packet = new Packet((int)Packets.MapOpen))
+            using (Packet _packet = new Packet((int)Packets.OpenMap))
             {
                 _packet.Write(name);
                 Networking.SendReliableData(_packet);
@@ -154,6 +136,62 @@ namespace SR2MP
             {
                 _packet.Write(name);
                 _packet.Write(eatenCount);
+                Networking.SendReliableData(_packet);
+            }
+        }
+
+        public static void SendTreasurePod(string name)
+        {
+            using (Packet _packet = new Packet((int)Packets.TreasurePod))
+            {
+                _packet.Write(name);
+                Networking.SendReliableData(_packet);
+            }
+        }
+
+        public static void SendActors(List<NetworkActor> actorsToSend)
+        {
+            using (Packet _packet = new Packet((int)Packets.Actors))
+            {
+                _packet.Write(actorsToSend.Count);
+
+                foreach (var actor in actorsToSend)
+                {
+                    _packet.Write(actor.Id);
+                    _packet.Write(actor.transform.position);
+                    _packet.Write(actor.transform.rotation.eulerAngles);
+                }
+                Networking.SendUnreliableData(_packet);
+            }
+        }
+
+        public static void SendSpawn(int id, string prefab, string scene, Vector3 position, Quaternion rotation)
+        {
+            using (Packet _packet = new Packet((int)Packets.Spawn))
+            {
+                _packet.Write(id);
+                _packet.Write(prefab);
+                _packet.Write(scene);
+                _packet.Write(position);
+                _packet.Write(rotation);
+                Networking.SendReliableData(_packet);
+            }
+        }
+
+        public static void SendDestroy(int id)
+        {
+            using (Packet _packet = new Packet((int)Packets.Destroy))
+            {
+                _packet.Write(id);
+                Networking.SendReliableData(_packet);
+            }
+        }
+
+        public static void SendSwitchRights(int id)
+        {
+            using (Packet _packet = new Packet((int)Packets.SwitchRights))
+            {
+                _packet.Write(id);
                 Networking.SendReliableData(_packet);
             }
         }

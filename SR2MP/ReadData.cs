@@ -9,14 +9,11 @@ namespace SR2MP
 {
     public class ReadData : MonoBehaviour
     {
-        //Player
         private Animator _Animator;
 
-        //Movement
         private Vector3 _Position;
         private float _Rotation;
 
-        //Animations
         private float _HorizontalMovement;
         private float _ForwardMovement;
         private float _Yaw;
@@ -25,17 +22,12 @@ namespace SR2MP
         private float _HorizontalSpeed;
         private float _ForwardSpeed;
 
-        //Time
         private double _Time;
 
-        //InGame
-        private bool _InGame;
-        private bool _InGameCached;
-
-        //Currency
         private int _Currency;
         private int _CurrencyCached;
-        private bool currencyChanged;
+
+        public static List<NetworkActor> ActorsToSend = new List<NetworkActor>();
 
         void Start()
         {
@@ -55,48 +47,27 @@ namespace SR2MP
             {
                 SendData.SendCurrency(_Currency, false);
                 _CurrencyCached = _Currency;
-                //currencyChanged = true;
-            }
-            //else
-            //{
-            //    if (currencyChanged)
-            //    {
-            //        SendData.SendCurrency(_Currency, true);
-            //        currencyChanged = false;
-            //    }
-            //}
-
-            ReadInGame();
-            if (_InGame != _InGameCached)
-            {
-                SendData.SendInGame(_InGame);
-                _InGameCached = _InGame;
             }
         }
 
         void FixedUpdate()
         {
-            ReadMovement();
-            SendData.SendMovement(_Position, _Rotation);
-
-            ReadAnimations();
-            SendData.SendAnimations(_HorizontalMovement, _ForwardMovement, _Yaw, _AirborneState, _Moving, _HorizontalSpeed, _ForwardSpeed);
+            ReadMovementWithAnimations();
+            SendData.SendMovementWithAnimations(_Position, _Rotation, _HorizontalMovement, _ForwardMovement, _Yaw, _AirborneState, _Moving, _HorizontalSpeed, _ForwardSpeed);
 
             if (SteamLobby.Host)
             {
                 ReadTime();
                 SendData.SendTime(_Time);
             }
+
+            ReadActors();
         }
 
-        private void ReadMovement()
+        private void ReadMovementWithAnimations()
         {
             _Position = this.transform.position;
             _Rotation = this.transform.rotation.eulerAngles.y;
-        }
-
-        private void ReadAnimations()
-        {
             _HorizontalMovement = _Animator.GetFloat("HorizontalMovement");
             _ForwardMovement = _Animator.GetFloat("ForwardMovement");
             _Yaw = _Animator.GetFloat("Yaw");
@@ -111,18 +82,35 @@ namespace SR2MP
             _Time = SRSingleton<SceneContext>.Instance.TimeDirector._worldModel.worldTime;
         }
 
-        private void ReadInGame()
+        private void ReadActors()
         {
-            var _SystemContext = SRSingleton<SystemContext>.Instance;
-            if (_SystemContext != null)
+            if (ActorsToSend.Count > 0)
             {
-                _InGame = _SystemContext.SceneLoader.CurrentSceneGroup.IsGameplay;
+                int counter = 0;
+                var actors = new List<NetworkActor>();
+                foreach (var actor in ActorsToSend)
+                {
+                    counter++;
+
+                    if (actor != null)
+                    {
+                        actors.Add(actor);
+                    }
+
+                    if (actors.Count == 42 || counter == ActorsToSend.Count)
+                    {
+                        SendData.SendActors(actors);
+                        actors.Clear();
+                    }
+                }
+
+                ActorsToSend.Clear();
             }
         }
 
         private void ReadCurrency()
         {
-            _Currency = SRSingleton<SceneContext>.Instance.PlayerState._model.currency;
+            _Currency = SRSingleton<SceneContext>.Instance.PlayerState._model._currencies[1].Amount;
         }
     }
 }

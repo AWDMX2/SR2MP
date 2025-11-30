@@ -1,4 +1,7 @@
 ﻿using HarmonyLib;
+using Il2CppMonomiPark.SlimeRancher;
+using Il2CppMonomiPark.SlimeRancher.Economy;
+using Il2CppMonomiPark.SlimeRancher.SceneManagement;
 using Il2CppMonomiPark.SlimeRancher.UI;
 using System;
 using System.Collections.Generic;
@@ -9,12 +12,38 @@ using UnityEngine;
 
 namespace SR2MP
 {
-    //[HarmonyPatch(typeof(AutoSaveDirector), nameof(AutoSaveDirector.SaveGame))]
+    [HarmonyPatch(typeof(AutoSaveDirector), nameof(AutoSaveDirector.SaveGame))]
     class AutoSaveDirector_SaveGame
     {
         public static bool Prefix()
         {
-            return !SteamLobby.Joined;
+            if (!Core.IsMultiplayer)
+                return true;
+
+            return SteamLobby.Host;
+        }
+    }
+
+    [HarmonyPatch(typeof(InstantiationHelpers), nameof(InstantiationHelpers.InstantiateActor))]
+    class InstantiationHelpers_InstantiateActor
+    {
+        public static void Postfix(GameObject __result, GameObject original, SceneGroup sceneGroup, Vector3 position, Quaternion rotation)
+        {
+            if (!Core.IsMultiplayer)
+                return;
+
+            if (!Networking.HandlePacket)
+            {
+                if (Core.SyncActors)
+                {
+                    var networkActor = __result.AddComponent<NetworkActor>();
+                    networkActor.Id = Core.SpawnID;
+                    networkActor.IsLocal = true;
+                    Core.Actors.Add(networkActor.Id, networkActor);
+
+                    SendData.SendSpawn(networkActor.Id, original.name, sceneGroup.name, position, rotation);
+                }
+            }
         }
     }
 
@@ -23,6 +52,9 @@ namespace SR2MP
     {
         public static void Postfix(LandPlot __instance, LandPlot.Upgrade upgrade)
         {
+            if (!Core.IsMultiplayer)
+                return;
+
             if (!Networking.HandlePacket)
             {
                 var name = __instance.GetComponentInParent<LandPlotLocation>().name;
@@ -36,6 +68,9 @@ namespace SR2MP
     {
         public static void Postfix(LandPlotLocation __instance, GameObject replacementPrefab)
         {
+            if (!Core.IsMultiplayer)
+                return;
+
             if (!Networking.HandlePacket)
             {
                 var type = (int)replacementPrefab.GetComponent<LandPlot>().TypeId;
@@ -49,21 +84,27 @@ namespace SR2MP
     {
         public static void Postfix(double endTime)
         {
+            if (!Core.IsMultiplayer)
+                return;
+
             SendData.SendSleep(endTime);
         }
     }
 
-    [HarmonyPatch(typeof(EconomyDirector), nameof(EconomyDirector.ResetPrices))]
+    //[HarmonyPatch(typeof(PlortEconomyDirector), nameof(PlortEconomyDirector.ResetPrices))]
     class EconomyDirector_ResetPrices
     {
         public static float[] ReceivedPrices;
-        public static void Postfix(EconomyDirector __instance)
+        public static void Postfix(PlortEconomyDirector __instance)
         {
+            if (!Core.IsMultiplayer)
+                return;
+
             if (SteamLobby.Host)
             {
                 SendData.SendPrices(__instance._currValueMap);
             }
-            else
+            else if (Networking.HandlePacket)
             {
                 int index = 0;
                 foreach (var price in __instance._currValueMap)
@@ -80,9 +121,12 @@ namespace SR2MP
     {
         public static void Postfix(TechUIInteractable __instance)
         {
+            if (!Core.IsMultiplayer)
+                return;
+
             if (!Networking.HandlePacket)
             {
-                SendData.SendMapOpen(__instance.name);
+                SendData.SendOpenMap(__instance.name);
             }
         }
     }
@@ -92,9 +136,27 @@ namespace SR2MP
     {
         public static void Postfix(GordoEat __instance, int eatenCount)
         {
+            if (!Core.IsMultiplayer)
+                return;
+
             if (!Networking.HandlePacket)
             {
                 SendData.SendGordoEat(__instance.name, eatenCount);
+            }
+        }
+    }
+
+    [HarmonyPatch(typeof(TreasurePod), nameof(TreasurePod.Activate))]
+    class TreasurePod_Activate
+    {
+        public static void Postfix(TreasurePod __instance)
+        {
+            if (!Core.IsMultiplayer)
+                return;
+
+            if (!Networking.HandlePacket)
+            {
+                SendData.SendTreasurePod(__instance.name);
             }
         }
     }

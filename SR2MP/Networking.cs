@@ -12,17 +12,15 @@ namespace SR2MP
         private delegate void PacketHandler(Packet _packet);
         private static Dictionary<int, PacketHandler> packetHandlers;
 
+        public static bool HandlePacket;
+
         public static void ListenData()
         {
-            uint size;
-            while (SteamNetworking.IsP2PPacketAvailable(out size, 0))
+            while (SteamNetworking.IsP2PPacketAvailable(out uint size))
             {
                 byte[] _data = new byte[size];
-                uint bytesRead;
 
-                CSteamID remoteId;
-
-                if (SteamNetworking.ReadP2PPacket(_data, size, out bytesRead, out remoteId, 0))
+                if (SteamNetworking.ReadP2PPacket(_data, size, out uint bytesRead, out CSteamID remoteId))
                 {
                     HandleReceivedData(_data);
                 }
@@ -41,14 +39,13 @@ namespace SR2MP
             SteamNetworking.SendP2PPacket(SteamLobby.Receiver, data, (uint)data.Length, EP2PSend.k_EP2PSendUnreliable, 0);
         }
 
-        public static bool HandlePacket;
         private static void HandleReceivedData(byte[] _data)
         {
             HandlePacket = true;
 
             using (Packet _packet = new Packet(_data))
             {
-                int _packetId = _packet.ReadInt();
+                byte _packetId = _packet.ReadByte();
                 packetHandlers[_packetId].Invoke(_packet);
             }
 
@@ -60,19 +57,22 @@ namespace SR2MP
             packetHandlers = new Dictionary<int, PacketHandler>()
             {
                 { (int)Packets.Message, HandleData.HandleMessage },
-                { (int)Packets.Movement, HandleData.HandleMovement },
-                { (int)Packets.Animations, HandleData.HandleAnimations },
+                { (int)Packets.MovementWithAnimations, HandleData.HandleMovementWithAnimations },
+                { (int)Packets.RequestSave, HandleData.HandleRequestSave },
+                { (int)Packets.Save, HandleData.HandleSave },
                 { (int)Packets.Time, HandleData.HandleTime },
-                { (int)Packets.InGame, HandleData.HandleInGame },
-                { (int)Packets.SaveDataRequest, HandleData.HandleSaveDataRequest },
-                { (int)Packets.SaveData, HandleData.HandleSaveData },
                 { (int)Packets.LandPlotUpgrade, HandleData.HandleLandPlotUpgrade },
                 { (int)Packets.LandPlotReplace, HandleData.HandleLandPlotReplace },
                 { (int)Packets.Currency, HandleData.HandleCurrency },
                 { (int)Packets.Sleep, HandleData.HandleSleep },
                 { (int)Packets.Prices, HandleData.HandlePrices },
-                { (int)Packets.MapOpen, HandleData.HandleMapOpen },
-                { (int)Packets.GordoEat, HandleData.HandleGordoEat }
+                { (int)Packets.OpenMap, HandleData.HandleOpenMap },
+                { (int)Packets.GordoEat, HandleData.HandleGordoEat },
+                { (int)Packets.TreasurePod, HandleData.HandleTreasurePod },
+                { (int)Packets.Actors, HandleData.HandleActors },
+                { (int)Packets.Spawn, HandleData.HandleSpawn },
+                { (int)Packets.Destroy, HandleData.HandleDestroy },
+                { (int)Packets.SwitchRights, HandleData.HandleSwitchRights }
             };
         }
     }

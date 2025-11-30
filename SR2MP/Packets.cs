@@ -7,19 +7,22 @@ using UnityEngine;
 public enum Packets
 {
     Message,
-    Movement,
-    Animations,
+    MovementWithAnimations,
+    RequestSave,
+    Save,
     Time,
-    InGame,
-    SaveDataRequest,
-    SaveData,
     LandPlotUpgrade,
     LandPlotReplace,
     Currency,
     Sleep,
     Prices,
-    MapOpen,
-    GordoEat
+    OpenMap,
+    GordoEat,
+    TreasurePod,
+    Actors,
+    Spawn,
+    Destroy,
+    SwitchRights
 }
 
 public class Packet : IDisposable
@@ -37,7 +40,7 @@ public class Packet : IDisposable
 
     /// <summary>Creates a new packet with a given ID. Used for sending.</summary>
     /// <param name="_id">The packet ID.</param>
-    public Packet(int _id)
+    public Packet(byte _id)
     {
         buffer = new List<byte>(); // Initialize buffer
         readPos = 0; // Set readPos to 0

@@ -1,5 +1,6 @@
-﻿using Il2CppMonomiPark.SlimeRancher.DataModel;
+﻿using Il2CppMonomiPark.SlimeRancher.Economy;
 using Il2CppMonomiPark.SlimeRancher.Player;
+using Il2CppMonomiPark.SlimeRancher.SceneManagement;
 using Il2CppMonomiPark.SlimeRancher.UI;
 using System;
 using System.Collections.Generic;
@@ -9,6 +10,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
+using static UnityEngine.Object;
 
 namespace SR2MP
 {
@@ -20,82 +22,49 @@ namespace SR2MP
             Console.WriteLine(msg);
         }
 
-        public static void HandleMovement(Packet _packet)
+        public static void HandleMovementWithAnimations(Packet _packet)
         {
-            var pos = _packet.ReadVector3();
-            var rot = _packet.ReadFloat();
-
-            if (NetworkPlayer.Instance != null)
-            {
-                NetworkPlayer.Instance.ReceivedPosition = pos;
-                NetworkPlayer.Instance.ReceivedRotation = rot;
-                NetworkPlayer.Instance.MovementReceived = true;
-            }
+            NetworkPlayer.ReceivedPosition = _packet.ReadVector3();
+            NetworkPlayer.ReceivedRotation = _packet.ReadFloat();
+            NetworkPlayer.HorizontalMovement = _packet.ReadFloat();
+            NetworkPlayer.ForwardMovement = _packet.ReadFloat();
+            NetworkPlayer.Yaw = _packet.ReadFloat();
+            NetworkPlayer.AirborneState = _packet.ReadInt();
+            NetworkPlayer.Moving = _packet.ReadBool();
+            NetworkPlayer.HorizontalSpeed = _packet.ReadFloat();
+            NetworkPlayer.ForwardSpeed = _packet.ReadFloat();
+            NetworkPlayer.MovementWithAnimationsReceived = true;
         }
 
-        public static void HandleAnimations(Packet _packet)
-        {
-            var horizontalMovement = _packet.ReadFloat();
-            var forwardMovement = _packet.ReadFloat();
-            var yaw = _packet.ReadFloat();
-            var airborneState = _packet.ReadInt();
-            var moving = _packet.ReadBool();
-            var horizontalSpeed = _packet.ReadFloat();
-            var forwardSpeed = _packet.ReadFloat();
-
-            if (NetworkPlayer.Instance != null)
-            {
-                NetworkPlayer.Instance.HorizontalMovement = horizontalMovement;
-                NetworkPlayer.Instance.ForwardMovement = forwardMovement;
-                NetworkPlayer.Instance.Yaw = yaw;
-                NetworkPlayer.Instance.AirborneState = airborneState;
-                NetworkPlayer.Instance.Moving = moving;
-                NetworkPlayer.Instance.HorizontalSpeed = horizontalSpeed;
-                NetworkPlayer.Instance.ForwardSpeed = forwardSpeed;
-                NetworkPlayer.Instance.AnimationsReceived = true;
-            }
-        }
-
-        public static void HandleTime(Packet _packet)
-        {
-            var time = _packet.ReadDouble();
-
-            if (SRSingleton<SceneContext>.Instance != null)
-            {
-                if (SRSingleton<SceneContext>.Instance.TimeDirector != null)
-                {
-                    SRSingleton<SceneContext>.Instance.TimeDirector._worldModel.worldTime = time;
-                }
-            }
-        }
-
-        public static void HandleInGame(Packet _packet)
-        {
-            var inGame = _packet.ReadBool();
-            SteamLobby.FriendInGame = inGame;
-        }
-
-        public static void HandleSaveDataRequest(Packet _packet)
+        public static void HandleRequestSave(Packet _packet)
         {
             var memoryStream = new Il2CppSystem.IO.MemoryStream();
-            SRSingleton<GameContext>.Instance.AutoSaveDirector.SaveGame();
-            SRSingleton<GameContext>.Instance.AutoSaveDirector.SavedGame.Save(memoryStream);
+            GameContext.Instance.AutoSaveDirector.SaveGame();
+            var save = GameContext.Instance.AutoSaveDirector.GetSaveToContinue();
+            GameContext.Instance.AutoSaveDirector._storageProvider.GetGameData(save.SaveName, memoryStream);
+
             memoryStream.Seek(0L, Il2CppSystem.IO.SeekOrigin.Begin);
 
-            var arraySave = memoryStream.ToArray();
+            var saveArray = memoryStream.ToArray();
             using (MemoryStream outputStream = new MemoryStream())
             {
                 using (GZipStream gzipStream = new GZipStream(outputStream, CompressionMode.Compress))
                 {
-                    gzipStream.Write(arraySave, 0, arraySave.Length);
+                    gzipStream.Write(saveArray, 0, saveArray.Length);
                 }
-                arraySave = outputStream.ToArray();
+                saveArray = outputStream.ToArray();
             }
 
-            SendData.SendSaveData(arraySave);
+            SendData.SendSave(saveArray);
+
+            Core.FindActors = true;
+
+            #if DEBUG
+            Core.IsMultiplayer = true;
+            #endif
         }
 
-        public static void HandleSaveData(Packet _packet)
+        public static void HandleSave(Packet _packet)
         {
             var length = _packet.ReadInt();
             var array = _packet.ReadBytes(length);
@@ -114,7 +83,28 @@ namespace SR2MP
 
             var memoryStream = new Il2CppSystem.IO.MemoryStream(array);
             memoryStream.Seek(0L, Il2CppSystem.IO.SeekOrigin.Begin);
-            SRSingleton<GameContext>.Instance.AutoSaveDirector.BeginLoad(memoryStream, "SR2MP", "SR2MP");
+
+            var gsi = new Il2CppMonomiPark.SlimeRancher.GameSaveIdentifier() { GameName = "SR2MP", SaveName = "SR2MP" };
+            GameContext.Instance.AutoSaveDirector.BeginLoad(gsi, memoryStream);
+
+            Core.FindActors = true;
+
+            #if DEBUG
+            Core.IsMultiplayer = true;
+            #endif
+        }
+
+        public static void HandleTime(Packet _packet)
+        {
+            var time = _packet.ReadDouble();
+
+            if (SceneContext.Instance != null)
+            {
+                if (SceneContext.Instance.TimeDirector != null)
+                {
+                    SceneContext.Instance.TimeDirector._worldModel.worldTime = time;
+                }
+            }
         }
 
         public static void HandleLandPlotUpgrade(Packet _packet)
@@ -140,7 +130,7 @@ namespace SR2MP
             {
                 var landPlotLocation = gameObject.GetComponent<LandPlotLocation>();
                 var oldLandPlot = landPlotLocation.GetComponentInChildren<LandPlot>();
-                var replacementPrefab = SRSingleton<GameContext>.Instance.LookupDirector.GetPlotPrefab((LandPlot.Id)type);
+                var replacementPrefab = GameContext.Instance.LookupDirector.GetPlotPrefab((LandPlot.Id)type);
                 landPlotLocation.Replace(oldLandPlot, replacementPrefab);
             }
         }
@@ -151,11 +141,9 @@ namespace SR2MP
         {
             var currency = _packet.ReadInt();
 
-            if (SRSingleton<SceneContext>.Instance != null)
+            if (SceneContext.Instance != null)
             {
-                int difference = currency - SRSingleton<SceneContext>.Instance.PlayerState._model.currency;
-                SRSingleton<SceneContext>.Instance.PlayerState._model.currency = currency;
-                SRSingleton<PopupElementsUI>.Instance.CreateCoinsPopup(difference, PlayerState.CoinsType.NORM);
+                SceneContext.Instance.PlayerState._model.SetCurrency(CurrencyUtility.DefaultCurrency, currency);
             }
 
             ReceivedCurrency = currency;
@@ -166,9 +154,9 @@ namespace SR2MP
         {
             var endTime = _packet.ReadDouble();
 
-            if (SRSingleton<LockOnDeath>.Instance != null)
+            if (LockOnDeath.Instance != null)
             {
-                SRSingleton<LockOnDeath>.Instance.LockUntil(endTime, 0f);
+                LockOnDeath.Instance.LockUntil(endTime, 0f);
             }
         }
 
@@ -184,7 +172,7 @@ namespace SR2MP
             EconomyDirector_ResetPrices.ReceivedPrices = prices;
         }
 
-        public static void HandleMapOpen(Packet _packet)
+        public static void HandleOpenMap(Packet _packet)
         {
             var name = _packet.ReadString();
 
@@ -192,7 +180,9 @@ namespace SR2MP
             if (gameObject != null)
             {
                 var techUIInteractable = gameObject.GetComponent<TechUIInteractable>();
-                techUIInteractable.OnInteract();
+
+                if (techUIInteractable != null)
+                    techUIInteractable.OnInteract();
             }
         }
 
@@ -211,6 +201,82 @@ namespace SR2MP
                 {
                     gordoEat.StartCoroutine(gordoEat.ReachedTarget());
                 }
+            }
+        }
+
+        public static void HandleTreasurePod(Packet _packet)
+        {
+            var name = _packet.ReadString();
+
+            var gameObject = GameObject.Find(name);
+            if (gameObject != null)
+            {
+                var treasurePod = gameObject.GetComponent<TreasurePod>();
+                treasurePod.Activate();
+            }
+        }
+
+        public static void HandleActors(Packet _packet)
+        {
+            var count = _packet.ReadInt();
+
+            for (int i = 0; i < count; i++)
+            {
+                var id = _packet.ReadInt();
+                var pos = _packet.ReadVector3();
+                var rot = _packet.ReadVector3();
+
+                if (Core.Actors.TryGetValue(id, out NetworkActor actor))
+                {
+                    actor.ReceivedPosition = pos;
+                    actor.ReceivedRotation = rot;
+                }
+            }
+        }
+
+        public static void HandleSpawn(Packet _packet)
+        {
+            var id = _packet.ReadInt();
+            var prefabName = _packet.ReadString();
+            var sceneName = _packet.ReadString();
+            var pos = _packet.ReadVector3();
+            var rot = _packet.ReadQuaternion();
+
+            Core.Prefabs.TryGetValue(prefabName, out GameObject prefab);
+            Core.Scenes.TryGetValue(sceneName, out SceneGroup scene);
+
+            if (prefab != null && scene != null)
+            {
+                if (!Core.Actors.ContainsKey(id))
+                {
+                    var gameObject = InstantiationHelpers.InstantiateActor(prefab, scene, pos, rot);
+                    var networkActor = gameObject.AddComponent<NetworkActor>();
+                    networkActor.Id = id;
+                    Core.Actors.Add(networkActor.Id, networkActor);
+                }
+            }
+        }
+
+        public static void HandleDestroy(Packet _packet)
+        {
+            var id = _packet.ReadInt();
+
+            if (Core.Actors.TryGetValue(id, out NetworkActor actor))
+            {
+                actor.DestroyReceived = true;
+                Destroy(actor.gameObject);
+
+                Core.Actors.Remove(id);
+            }
+        }
+
+        public static void HandleSwitchRights(Packet _packet)
+        {
+            var id = _packet.ReadInt();
+
+            if (Core.Actors.TryGetValue(id, out NetworkActor actor))
+            {
+                actor.IsLocal = false;
             }
         }
     }

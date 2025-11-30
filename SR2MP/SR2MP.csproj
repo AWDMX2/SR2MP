@@ -18,7 +18,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;STEAMWORKS_WIN;STEAMWORKS_X64</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -50,10 +50,6 @@
     <Reference Include="Il2Cppmscorlib">
       <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Slime Rancher 2\BepInEx\interop\Il2Cppmscorlib.dll</HintPath>
     </Reference>
-    <Reference Include="Steamworks.NET">
-      <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Slime Rancher 2\BepInEx\plugins\Steamworks.NET\Steamworks.NET.dll</HintPath>
-      <EmbedInteropTypes>False</EmbedInteropTypes>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -68,29 +64,154 @@
     <Reference Include="UnityEngine.AnimationModule">
       <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Slime Rancher 2\BepInEx\interop\UnityEngine.AnimationModule.dll</HintPath>
     </Reference>
+    <Reference Include="UnityEngine.AssetBundleModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Slime Rancher 2\BepInEx\interop\UnityEngine.AssetBundleModule.dll</HintPath>
+    </Reference>
     <Reference Include="UnityEngine.CoreModule">
       <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Slime Rancher 2\BepInEx\interop\UnityEngine.CoreModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.IMGUIModule">
       <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Slime Rancher 2\BepInEx\interop\UnityEngine.IMGUIModule.dll</HintPath>
     </Reference>
-    <Reference Include="UnityEngine.TextRenderingModule">
-      <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Slime Rancher 2\BepInEx\interop\UnityEngine.TextRenderingModule.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="HandleData.cs" />
     <Compile Include="Loader.cs" />
+    <Compile Include="NetworkActor.cs" />
     <Compile Include="Networking.cs" />
     <Compile Include="NetworkPlayer.cs" />
     <Compile Include="Packets.cs" />
     <Compile Include="Patches.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="MultiplayerCore.cs" />
+    <Compile Include="Core.cs" />
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
     <Compile Include="ReadData.cs" />
     <Compile Include="SendData.cs" />
     <Compile Include="SteamLobby.cs" />
-    <Compile Include="MultiplayerUI.cs" />
+    <Compile Include="Steamworks.NET\autogen\isteamapplist.cs" />
+    <Compile Include="Steamworks.NET\autogen\isteamapps.cs" />
+    <Compile Include="Steamworks.NET\autogen\isteamclient.cs" />
+    <Compile Include="Steamworks.NET\autogen\isteamfriends.cs" />
+    <Compile Include="Steamworks.NET\autogen\isteamgameserver.cs" />
+    <Compile Include="Steamworks.NET\autogen\isteamgameserverclient.cs" />
+    <Compile Include="Steamworks.NET\autogen\isteamgameserverhttp.cs" />
+    <Compile Include="Steamworks.NET\autogen\isteamgameserverinventory.cs" />
+    <Compile Include="Steamworks.NET\autogen\isteamgameservernetworking.cs" />
+    <Compile Include="Steamworks.NET\autogen\isteamgameservernetworkingsockets.cs" />
+    <Compile Include="Steamworks.NET\autogen\isteamgameservernetworkingutils.cs" />
+    <Compile Include="Steamworks.NET\autogen\isteamgameserverstats.cs" />
+    <Compile Include="Steamworks.NET\autogen\isteamgameserverugc.cs" />
+    <Compile Include="Steamworks.NET\autogen\isteamgameserverutils.cs" />
+    <Compile Include="Steamworks.NET\autogen\isteamhtmlsurface.cs" />
+    <Compile Include="Steamworks.NET\autogen\isteamhttp.cs" />
+    <Compile Include="Steamworks.NET\autogen\isteaminput.cs" />
+    <Compile Include="Steamworks.NET\autogen\isteaminventory.cs" />
+    <Compile Include="Steamworks.NET\autogen\isteammatchmaking.cs" />
+    <Compile Include="Steamworks.NET\autogen\isteammusic.cs" />
+    <Compile Include="Steamworks.NET\autogen\isteammusicremote.cs" />
+    <Compile Include="Steamworks.NET\autogen\isteamnetworking.cs" />
+    <Compile Include="Steamworks.NET\autogen\isteamnetworkingmessages.cs" />
+    <Compile Include="Steamworks.NET\autogen\isteamnetworkingsockets.cs" />
+    <Compile Include="Steamworks.NET\autogen\isteamnetworkingutils.cs" />
+    <Compile Include="Steamworks.NET\autogen\isteamparentalsettings.cs" />
+    <Compile Include="Steamworks.NET\autogen\isteamremoteplay.cs" />
+    <Compile Include="Steamworks.NET\autogen\isteamremotestorage.cs" />
+    <Compile Include="Steamworks.NET\autogen\isteamscreenshots.cs" />
+    <Compile Include="Steamworks.NET\autogen\isteamugc.cs" />
+    <Compile Include="Steamworks.NET\autogen\isteamuser.cs" />
+    <Compile Include="Steamworks.NET\autogen\isteamuserstats.cs" />
+    <Compile Include="Steamworks.NET\autogen\isteamutils.cs" />
+    <Compile Include="Steamworks.NET\autogen\isteamvideo.cs" />
+    <Compile Include="Steamworks.NET\autogen\NativeMethods.cs" />
+    <Compile Include="Steamworks.NET\autogen\SteamCallbacks.cs" />
+    <Compile Include="Steamworks.NET\autogen\SteamConstants.cs" />
+    <Compile Include="Steamworks.NET\autogen\SteamEnums.cs" />
+    <Compile Include="Steamworks.NET\autogen\SteamStructs.cs" />
+    <Compile Include="Steamworks.NET\CallbackDispatcher.cs" />
+    <Compile Include="Steamworks.NET\CallbackIdentity.cs" />
+    <Compile Include="Steamworks.NET\InteropHelp.cs" />
+    <Compile Include="Steamworks.NET\ISteamMatchmakingResponses.cs" />
+    <Compile Include="Steamworks.NET\Packsize.cs" />
+    <Compile Include="Steamworks.NET\Steam.cs" />
+    <Compile Include="Steamworks.NET\types\MatchmakingTypes\gameserveritem_t.cs" />
+    <Compile Include="Steamworks.NET\types\MatchmakingTypes\servernetadr_t.cs" />
+    <Compile Include="Steamworks.NET\types\SteamClientPublic\CGameID.cs" />
+    <Compile Include="Steamworks.NET\types\SteamClientPublic\CSteamID.cs" />
+    <Compile Include="Steamworks.NET\types\SteamClientPublic\HAuthTicket.cs" />
+    <Compile Include="Steamworks.NET\types\SteamClient\SteamAPIWarningMessageHook_t.cs" />
+    <Compile Include="Steamworks.NET\types\SteamClient\SteamAPI_CheckCallbackRegistered_t.cs" />
+    <Compile Include="Steamworks.NET\types\SteamDatagramTickets\SteamDatagramHostedAddress.cs" />
+    <Compile Include="Steamworks.NET\types\SteamDatagramTickets\SteamDatagramRelayAuthTicket.cs" />
+    <Compile Include="Steamworks.NET\types\SteamFriends\FriendsGroupID_t.cs" />
+    <Compile Include="Steamworks.NET\types\SteamHTMLSurface\HHTMLBrowser.cs" />
+    <Compile Include="Steamworks.NET\types\SteamHTTP\HTTPCookieContainerHandle.cs" />
+    <Compile Include="Steamworks.NET\types\SteamHTTP\HTTPRequestHandle.cs" />
+    <Compile Include="Steamworks.NET\types\SteamInput\InputActionSetHandle_t.cs" />
+    <Compile Include="Steamworks.NET\types\SteamInput\InputAnalogActionHandle_t.cs" />
+    <Compile Include="Steamworks.NET\types\SteamInput\InputDigitalActionHandle_t.cs" />
+    <Compile Include="Steamworks.NET\types\SteamInput\InputHandle_t.cs" />
+    <Compile Include="Steamworks.NET\types\SteamInput\SteamInputActionEventCallbackPointer.cs" />
+    <Compile Include="Steamworks.NET\types\SteamInput\SteamInputActionEvent_t.cs" />
+    <Compile Include="Steamworks.NET\types\SteamInventory\SteamInventoryResult_t.cs" />
+    <Compile Include="Steamworks.NET\types\SteamInventory\SteamInventoryUpdateHandle_t.cs" />
+    <Compile Include="Steamworks.NET\types\SteamInventory\SteamItemDef_t.cs" />
+    <Compile Include="Steamworks.NET\types\SteamInventory\SteamItemInstanceID_t.cs" />
+    <Compile Include="Steamworks.NET\types\SteamMatchmaking\HServerListRequest.cs" />
+    <Compile Include="Steamworks.NET\types\SteamMatchmaking\HServerQuery.cs" />
+    <Compile Include="Steamworks.NET\types\SteamNetworkingSockets\ISteamNetworkingConnectionSignaling.cs" />
+    <Compile Include="Steamworks.NET\types\SteamNetworkingSockets\ISteamNetworkingSignalingRecvContext.cs" />
+    <Compile Include="Steamworks.NET\types\SteamNetworkingTypes\FSteamNetworkingSocketsDebugOutput.cs" />
+    <Compile Include="Steamworks.NET\types\SteamNetworkingTypes\HSteamListenSocket.cs" />
+    <Compile Include="Steamworks.NET\types\SteamNetworkingTypes\HSteamNetConnection.cs" />
+    <Compile Include="Steamworks.NET\types\SteamNetworkingTypes\HSteamNetPollGroup.cs" />
+    <Compile Include="Steamworks.NET\types\SteamNetworkingTypes\SteamNetworkingConfigValue_t.cs" />
+    <Compile Include="Steamworks.NET\types\SteamNetworkingTypes\SteamNetworkingErrMsg.cs" />
+    <Compile Include="Steamworks.NET\types\SteamNetworkingTypes\SteamNetworkingIdentity.cs" />
+    <Compile Include="Steamworks.NET\types\SteamNetworkingTypes\SteamNetworkingIPAddr.cs" />
+    <Compile Include="Steamworks.NET\types\SteamNetworkingTypes\SteamNetworkingMessage_t.cs" />
+    <Compile Include="Steamworks.NET\types\SteamNetworkingTypes\SteamNetworkingMicroseconds.cs" />
+    <Compile Include="Steamworks.NET\types\SteamNetworkingTypes\SteamNetworkingPOPID.cs" />
+    <Compile Include="Steamworks.NET\types\SteamNetworking\SNetListenSocket_t.cs" />
+    <Compile Include="Steamworks.NET\types\SteamNetworking\SNetSocket_t.cs" />
+    <Compile Include="Steamworks.NET\types\SteamRemotePlay\RemotePlaySessionID_t.cs" />
+    <Compile Include="Steamworks.NET\types\SteamRemoteStorage\PublishedFileId_t.cs" />
+    <Compile Include="Steamworks.NET\types\SteamRemoteStorage\PublishedFileUpdateHandle_t.cs" />
+    <Compile Include="Steamworks.NET\types\SteamRemoteStorage\UGCFileWriteStreamHandle_t.cs" />
+    <Compile Include="Steamworks.NET\types\SteamRemoteStorage\UGCHandle_t.cs" />
+    <Compile Include="Steamworks.NET\types\SteamScreenshots\ScreenshotHandle.cs" />
+    <Compile Include="Steamworks.NET\types\SteamTypes\AccountID_t.cs" />
+    <Compile Include="Steamworks.NET\types\SteamTypes\AppId_t.cs" />
+    <Compile Include="Steamworks.NET\types\SteamTypes\DepotId_t.cs" />
+    <Compile Include="Steamworks.NET\types\SteamTypes\PartyBeaconID_t.cs" />
+    <Compile Include="Steamworks.NET\types\SteamTypes\RTime32.cs" />
+    <Compile Include="Steamworks.NET\types\SteamTypes\SteamAPICall_t.cs" />
+    <Compile Include="Steamworks.NET\types\SteamTypes\SteamIPAddress_t.cs" />
+    <Compile Include="Steamworks.NET\types\SteamUGC\UGCQueryHandle_t.cs" />
+    <Compile Include="Steamworks.NET\types\SteamUGC\UGCUpdateHandle_t.cs" />
+    <Compile Include="Steamworks.NET\types\SteamUserStats\SteamLeaderboardEntries_t.cs" />
+    <Compile Include="Steamworks.NET\types\SteamUserStats\SteamLeaderboard_t.cs" />
+    <Compile Include="Steamworks.NET\types\Steam_api_common\HSteamPipe.cs" />
+    <Compile Include="Steamworks.NET\types\Steam_api_common\HSteamUser.cs" />
+    <Compile Include="Steamworks.NET\Version.cs" />
+    <Compile Include="UI.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\sr2mp" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>
+    </PostBuildEvent>
+  </PropertyGroup>
 </Project>
